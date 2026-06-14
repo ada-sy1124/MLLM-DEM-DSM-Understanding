@@ -1,5 +1,4 @@
 
-
 # 🚀 顶会论文核心架构蓝图：SPIN 框架
 
 * **拟定标题：** *SPIN: Spatial Predicate Intervention for Controllable Visual Grounding via Paired Reinforcement Learning* (SPIN: 通过成对强化学习在视觉定位中实现空间谓词干预的可控性)
@@ -15,11 +14,9 @@
 
 * **输入源：** Visual Genome 的 `relationships.json` 和 `objects.json`。
 * **变量映射逻辑：** 遍历图谱，将三元组抽象为代数符号：
-* $S$ (Subject/目标): 如 car, dog, man
-* $A$ (Anchor/锚点): 如 house, table, tree
-* $P$ (Predicate/谓词): 如 left_of, above, below
-
-
+  * $S$ (Subject/目标): 如 car, dog, man
+  * $A$ (Anchor/锚点): 如 house, table, tree
+  * $P$ (Predicate/谓词): 如 left_of, above, below
 
 ### 1.2 神谕几何蒙版生成器 (Oracle Mask Generator)
 
@@ -36,39 +33,29 @@
 对图中的每一个基准三元组，在**同一张图内**运行几何检索。以下四条数据共用同一个 `contrast_id` (对比批次ID)：
 
 **A. 基准组 (Base - 对照基石)**
-
 * **Query:** "Find the $\{S\}$ $\{P_{base}\}$ the $\{A\}$."
 * **Oracle 数据结构:**
-* `target_box`: 目标 $S$ 的真实坐标。
-* `anchor_box`: 锚点 $A$ 的真实坐标。
-* `valid_mask`: 基于 $P_{base}$ 和 $A$ 计算的神谕蒙版。
-
-
+  * `target_box`: 目标 $S$ 的真实坐标。
+  * `anchor_box`: 锚点 $A$ 的真实坐标。
+  * `valid_mask`: 基于 $P_{base}$ 和 $A$ 计算的神谕蒙版。
 
 **B. 干预组 1：谓词翻转 (Flip - 核心反事实检验)**
-
 * **【极度严苛过滤】：** 遍历图中所有名称为 $S$ 的干扰实体 $S'$。若存在至少一个 $S'$，其几何中心完全落在反向谓词 $P_{flip}$ 的 $Mask$ 内，则将其设为反事实目标。**若不存在，该组数据连同 Base 一起直接丢弃！** (保证有物理交集且有实体承接)。
 * **Oracle 数据结构:**
-* `target_box`: 对称目标 $S'$ 的真实坐标。
-* `anchor_box`: 继承 Base。
-* `valid_mask`: 基于 $P_{flip}$ 的反向蒙版。
-
-
+  * `target_box`: 对称目标 $S'$ 的真实坐标。
+  * `anchor_box`: 继承 Base。
+  * `valid_mask`: 基于 $P_{flip}$ 的反向蒙版。
 
 **C. 干预组 2：同义改写 (Para - 测语义鲁棒)**
-
 * **生成规则：** 查字典同义替换（如 `left_of` $\rightarrow$ `on the west side of`）。
 * **Oracle 数据结构:** 100% 继承 Base 组。
 
 **D. 干预组 3：锚点替换 (Swap - 测锚点解绑)**
-
 * **生成规则：** 查询 Scene Graph，寻找该目标 $S$ 连向的另一个锚点 $A_{new}$（例如同一辆车，既在房子左边，又在马路上）。
 * **Oracle 数据结构:**
-* `target_box`: 依然是 Base 的那辆车 (目标不变)。
-* `anchor_box`: $A_{new}$ 的真实坐标 (马路)。
-* `valid_mask`: 根据新锚点 $A_{new}$ 重新计算的新蒙版。
-
-
+  * `target_box`: 依然是 Base 的那辆车 (目标不变)。
+  * `anchor_box`: $A_{new}$ 的真实坐标 (马路)。
+  * `valid_mask`: 根据新锚点 $A_{new}$ 重新计算的新蒙版。
 
 ---
 
@@ -79,23 +66,18 @@
 给定 $\text{IoU}$ 命中阈值 $\tau = 0.5$。对模型输出的最后一步结果计算以下严格的联合布尔指标 (Boolean Logic)：
 
 1. **AGA (Absolute Grounding Accuracy / 绝对准确率):**
-* **公式：** $\mathbb{I}(\text{IoU}(\text{Pred}_{base\_ans}, GT_{base\_target}) \ge \tau)$
-* **意义：** 考察模型的基础定位能力底线，证明它不是瞎子。
-
+   * **公式：** $\mathbb{I}(\text{IoU}(\text{Pred}_{base\_ans}, GT_{base\_target}) \ge \tau)$
+   * **意义：** 考察模型的基础定位能力底线，证明它不是瞎子。
 
 2. **PSS (Predicate Sensitivity Score / 谓词敏感度 - 论文灵魂):**
-* **公式：** $\mathbb{I}(\text{IoU}(\text{Pred}_{base\_ans}, GT_{base\_target}) \ge \tau) \land \mathbb{I}(\text{IoU}(\text{Pred}_{flip\_ans}, GT_{flip\_target}) \ge \tau)$
-* **意义：** 要求模型在面对“左”和“右”时，**连续两次独立推理**都必须分别命中物理空间两端的不同目标。单边找对得 0 分。逼迫模型交出真正的因果能力。
-
+   * **公式：** $\mathbb{I}(\text{IoU}(\text{Pred}_{base\_ans}, GT_{base\_target}) \ge \tau) \land \mathbb{I}(\text{IoU}(\text{Pred}_{flip\_ans}, GT_{flip\_target}) \ge \tau)$
+   * **意义：** 要求模型在面对“左”和“右”时，**连续两次独立推理**都必须分别命中物理空间两端的不同目标。单边找对得 0 分。逼迫模型交出真正的因果能力。
 
 3. **SIS (Semantic Invariance Score / 语义不变性):**
-* **公式：** $\mathbb{I}(\text{IoU}_{base\_ans} \ge \tau) \land \mathbb{I}(\text{IoU}_{para\_ans} \ge \tau)$
-
+   * **公式：** $\mathbb{I}(\text{IoU}_{base\_ans} \ge \tau) \land \mathbb{I}(\text{IoU}_{para\_ans} \ge \tau)$
 
 4. **ACS (Anchor Controllability Score / 锚点可控性):**
-* **公式：** $\mathbb{I}(\text{IoU}_{base\_ans} \ge \tau) \land \mathbb{I}(\text{IoU}_{swap\_ans} \ge \tau)$
-
-
+   * **公式：** $\mathbb{I}(\text{IoU}_{base\_ans} \ge \tau) \land \mathbb{I}(\text{IoU}_{swap\_ans} \ge \tau)$
 
 ---
 
@@ -127,12 +109,12 @@
 
 * **防线 A - 合法覆盖 (Coverage):** 严惩指天空作弊。
 
-$$r_{cov} = \text{IoU}(\text{Pred\_Region}, Oracle\_Mask)$$
+$$r_{cov} = \text{IoU}(\text{Pred_Region}, \text{Oracle_Mask})$$
 
 
 * **防线 B - 因果排斥 (Causal Shift):** 强制左右视线物理分离。
 
-$$r_{shift} = 1.0 - \text{IoU}(\text{Pred\_Region}_{base}, \text{Pred\_Region}_{flip})$$
+$$r_{shift} = 1.0 - \text{IoU}(\text{Pred_Region}_{base}, \text{Pred_Region}_{flip})$$
 
 
 * **公式整合 (极致防作弊机制):**
@@ -147,14 +129,15 @@ $$R_{region} = \lambda_1 \cdot r_{cov} + \lambda_2 \cdot (r_{shift} \times \math
 
 * **If Pair $\in$ {Flip, Para}:** (找的方向变了，但房子没变)
 
-$$R_{anchor} = \text{IoU}(\text{Pred\_Anchor}_{base}, \text{Pred\_Anchor}_{interv}) \times \text{IoU}(\text{Pred\_Anchor}_{base}, GT_{anchor})$$
+$$R_{anchor} = \text{IoU}(\text{Pred_Anchor}_{base}, \text{Pred_Anchor}_{interv}) \times \text{IoU}(\text{Pred_Anchor}_{base}, GT_{anchor})$$
 
 
 
 *(奖励锚点在原位保持静止，且一开始就找得准)*
+
 * **If Pair == Swap:** (参照物变成了马路)
 
-$$R_{anchor} = (1.0 - \text{IoU}(\text{Pred\_Anchor}_{base}, \text{Pred\_Anchor}_{swap})) \times \text{IoU}(\text{Pred\_Anchor}_{swap}, GT_{new\_anchor})$$
+$$R_{anchor} = (1.0 - \text{IoU}(\text{Pred_Anchor}_{base}, \text{Pred_Anchor}_{swap})) \times \text{IoU}(\text{Pred_Anchor}_{swap}, GT_{new\_anchor})$$
 
 
 
@@ -162,7 +145,7 @@ $$R_{anchor} = (1.0 - \text{IoU}(\text{Pred\_Anchor}_{base}, \text{Pred\_Anchor}
 
 **🛡️ 目标 3：终极神谕命中 ($R_{final}$) - 守住评测底线**
 
-* $$R_{final} = \text{IoU}(\text{Pred\_Answer}, GT_{target})$$
+* $$R_{final} = \text{IoU}(\text{Pred_Answer}, GT_{target})$$
 
 
 
@@ -179,7 +162,7 @@ $$R_{anchor} = (1.0 - \text{IoU}(\text{Pred\_Anchor}_{base}, \text{Pred\_Anchor}
 1. **Main Results (主实验对抗):**
 * 在 SPIN-Eval 榜单上横向拉出开源 SOTA (Qwen-VL, LLaVA, DeepSeek-VL)。
 * **惊人事实：** 展示 SOTA 模型的 AGA（基础准确率）高达 85%，但 PSS（因果翻转率）惨跌至 15%（证明它们全靠作弊）。
-* **高光时刻：** 展示你的 SPIN模型在 AGA 维持在 85% 的前提下，PSS 狂飙至 75%+%+，实现对因果缺陷的完美治愈。
+* **高光时刻：** 展示你的 SPIN 模型在 AGA 维持在 85% 的前提下，PSS 狂飙至 75%+, 实现对因果缺陷的完美治愈。
 
 
 2. **Ablation 1: 稠密先验的绝对必要性 (The Necessity of $R_{region}$)**
@@ -222,3 +205,6 @@ SPIN_Project/
 └── configs/                     # YAML 超参数配置 (Reward 权重, KL 系数设定等)
 
 ```
+
+```
+
