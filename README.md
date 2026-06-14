@@ -71,7 +71,7 @@
 
 **核心设计哲学：** 捍卫视觉定位（Visual Grounding）的底线！坚决执行开放词表连续坐标回归，绝不退化为提供候选框的选择题！**评测指标只对最终目标框 (Final Target) 负责，绝不依赖中间搜索区域，严防模型作弊。**
 
-给定 $\operatorname{IoU}$ 命中阈值 $\tau = 0.5$。对模型输出的最后一步结果计算以下严格的联合布尔指标 (Boolean Logic)：
+给定 $\mathrm{IoU}$ 命中阈值 $\tau = 0.5$。对模型输出的最后一步结果计算以下严格的联合布尔指标 (Boolean Logic)：
 
 ### 1. AGA (Absolute Grounding Accuracy / 绝对准确率)
 
@@ -79,7 +79,7 @@
 
 $$
 \mathbb{I}\left(
-\operatorname{IoU}
+\mathrm{IoU}
 \left(
 \mathrm{Pred}*{\mathrm{base_ans}},
 \mathrm{GT}*{\mathrm{base_target}}
@@ -96,7 +96,7 @@ $$
 
 $$
 \mathbb{I}\left(
-\operatorname{IoU}
+\mathrm{IoU}
 \left(
 \mathrm{Pred}*{\mathrm{base_ans}},
 \mathrm{GT}*{\mathrm{base_target}}
@@ -105,7 +105,7 @@ $$
 \right)
 \land
 \mathbb{I}\left(
-\operatorname{IoU}
+\mathrm{IoU}
 \left(
 \mathrm{Pred}*{\mathrm{flip_ans}},
 \mathrm{GT}*{\mathrm{flip_target}}
@@ -179,7 +179,7 @@ $$
 
 $$
 r_{\mathrm{cov}} =
-\operatorname{IoU}
+\mathrm{IoU}
 \left(
 \mathrm{Pred_Region},
 \mathrm{Oracle_Mask}
@@ -191,7 +191,7 @@ $$
 $$
 r_{\mathrm{shift}} =
 1.0 -
-\operatorname{IoU}
+\mathrm{IoU}
 \left(
 \mathrm{Pred_Region}*{\mathrm{base}},
 \mathrm{Pred_Region}*{\mathrm{flip}}
@@ -223,13 +223,13 @@ $$
 
 $$
 R_{\mathrm{anchor}} =
-\operatorname{IoU}
+\mathrm{IoU}
 \left(
 \mathrm{Pred_Anchor}*{\mathrm{base}},
 \mathrm{Pred_Anchor}*{\mathrm{interv}}
 \right)
 \times
-\operatorname{IoU}
+\mathrm{IoU}
 \left(
 \mathrm{Pred_Anchor}*{\mathrm{base}},
 \mathrm{GT}*{\mathrm{anchor}}
@@ -244,14 +244,14 @@ $$
 R_{\mathrm{anchor}} =
 \left(
 1.0 -
-\operatorname{IoU}
+\mathrm{IoU}
 \left(
 \mathrm{Pred_Anchor}*{\mathrm{base}},
 \mathrm{Pred_Anchor}*{\mathrm{swap}}
 \right)
 \right)
 \times
-\operatorname{IoU}
+\mathrm{IoU}
 \left(
 \mathrm{Pred_Anchor}*{\mathrm{swap}},
 \mathrm{GT}*{\mathrm{new_anchor}}
@@ -264,7 +264,7 @@ $$
 
 $$
 R_{\mathrm{final}} =
-\operatorname{IoU}
+\mathrm{IoU}
 \left(
 \mathrm{Pred_Answer},
 \mathrm{GT}_{\mathrm{target}}
