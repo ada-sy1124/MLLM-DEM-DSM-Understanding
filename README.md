@@ -1,3 +1,5 @@
+markdown```
+
 # 🚀 顶会论文核心架构蓝图：SPIN 框架
 
 * **拟定标题：** *SPIN: Spatial Predicate Intervention for Controllable Visual Grounding via Paired Reinforcement Learning* (SPIN: 通过成对强化学习在视觉定位中实现空间谓词干预的可控性)
@@ -215,4 +217,5 @@ SPIN_Project/
 │   └── train_grpo.py            # 基于 HuggingFace TRL, DeepSpeed 的分布式训练入口
 │
 └── configs/                     # YAML 超参数配置 (Reward 权重, KL 系数设定等)
+```
 ```
