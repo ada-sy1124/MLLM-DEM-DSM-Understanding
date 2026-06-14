@@ -126,25 +126,46 @@
 **🛡️ 目标 1：稠密区域探索先验 ($R_{region}$) - 解决稀疏性与防作弊网络**
 
 * **防线 A - 合法覆盖 (Coverage):** 严惩指天空作弊。
-$r_{cov} = \text{IoU}(\text{Pred\_Region}, Oracle\_Mask)$
+
+$$r_{cov} = \text{IoU}(\text{Pred\_Region}, Oracle\_Mask)$$
+
+
 * **防线 B - 因果排斥 (Causal Shift):** 强制左右视线物理分离。
-$r_{shift} = 1.0 - \text{IoU}(\text{Pred\_Region}_{base}, \text{Pred\_Region}_{flip})$
+
+$$r_{shift} = 1.0 - \text{IoU}(\text{Pred\_Region}_{base}, \text{Pred\_Region}_{flip})$$
+
+
 * **公式整合 (极致防作弊机制):**
-$R_{region} = \lambda_1 \cdot r_{cov} + \lambda_2 \cdot (r_{shift} \times \mathbb{I}(r_{cov} > 0.1))$
+
+$$R_{region} = \lambda_1 \cdot r_{cov} + \lambda_2 \cdot (r_{shift} \times \mathbb{I}(r_{cov} > 0.1))$$
+
+
+
 *(极其精妙的设计：如果模型为了骗取 shift 分数，故意输出互不相交的无效区域（如天空），由于它没命中神谕掩码 $r_{cov}$ 极低，它的 shift 得分也会瞬间归零！作弊漏洞彻底焊死。)*
 
 **🛡️ 目标 2：条件锚点一致性 ($R_{anchor}$) - 保证参照物智商**
 
 * **If Pair $\in$ {Flip, Para}:** (找的方向变了，但房子没变)
-$R_{anchor} = \text{IoU}(\text{Pred\_Anchor}_{base}, \text{Pred\_Anchor}_{interv}) \times \text{IoU}(\text{Pred\_Anchor}_{base}, GT_{anchor})$
+
+$$R_{anchor} = \text{IoU}(\text{Pred\_Anchor}_{base}, \text{Pred\_Anchor}_{interv}) \times \text{IoU}(\text{Pred\_Anchor}_{base}, GT_{anchor})$$
+
+
+
 *(奖励锚点在原位保持静止，且一开始就找得准)*
 * **If Pair == Swap:** (参照物变成了马路)
-$R_{anchor} = (1.0 - \text{IoU}(\text{Pred\_Anchor}_{base}, \text{Pred\_Anchor}_{swap})) \times \text{IoU}(\text{Pred\_Anchor}_{swap}, GT_{new\_anchor})$
+
+$$R_{anchor} = (1.0 - \text{IoU}(\text{Pred\_Anchor}_{base}, \text{Pred\_Anchor}_{swap})) \times \text{IoU}(\text{Pred\_Anchor}_{swap}, GT_{new\_anchor})$$
+
+
+
 *(奖励锚点发生了物理位移，且死死钉住了新参照物)*
 
 **🛡️ 目标 3：终极神谕命中 ($R_{final}$) - 守住评测底线**
 
-* $R_{final} = \text{IoU}(\text{Pred\_Answer}, GT_{target})$
+* $$R_{final} = \text{IoU}(\text{Pred\_Answer}, GT_{target})$$
+
+
+
 *(唯一挂钩最终结果的稀疏奖励。兜底防线：如果最后没找对车，过程分再高也会被削弱，与 SPIN-Eval 评测指标严格对齐。)*
 
 **GRPO 参数更新：** 整合总奖励 $R_{total} = w_1 R_{region} + w_2 R_{anchor} + w_3 R_{final}$。基于配对 GRPO 组内方差计算优势（Advantage），结合 KL 散度约束，爬升策略网络梯度。
@@ -158,7 +179,7 @@ $R_{anchor} = (1.0 - \text{IoU}(\text{Pred\_Anchor}_{base}, \text{Pred\_Anchor}_
 1. **Main Results (主实验对抗):**
 * 在 SPIN-Eval 榜单上横向拉出开源 SOTA (Qwen-VL, LLaVA, DeepSeek-VL)。
 * **惊人事实：** 展示 SOTA 模型的 AGA（基础准确率）高达 85%，但 PSS（因果翻转率）惨跌至 15%（证明它们全靠作弊）。
-* **高光时刻：** 展示你的 SPIN 模型在 AGA 维持在 85% 的前提下，PSS 狂飙至 75%+，实现对因果缺陷的完美治愈。
+* **高光时刻：** 展示你的 SPIN模型在 AGA 维持在 85% 的前提下，PSS 狂飙至 75%+%+，实现对因果缺陷的完美治愈。
 
 
 2. **Ablation 1: 稠密先验的绝对必要性 (The Necessity of $R_{region}$)**
@@ -201,4 +222,3 @@ SPIN_Project/
 └── configs/                     # YAML 超参数配置 (Reward 权重, KL 系数设定等)
 
 ```
-
