@@ -1,4 +1,3 @@
-markdown```
 
 # 🚀 顶会论文核心架构蓝图：SPIN 框架
 
@@ -217,5 +216,4 @@ SPIN_Project/
 │   └── train_grpo.py            # 基于 HuggingFace TRL, DeepSpeed 的分布式训练入口
 │
 └── configs/                     # YAML 超参数配置 (Reward 权重, KL 系数设定等)
-```
 ```
