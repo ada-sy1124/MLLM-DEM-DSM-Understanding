@@ -18,6 +18,35 @@
 * $A$ (Anchor/锚点): 如 house, table, tree
 * $P$ (Predicate/谓词): 如 left_of, above, below
 
+json示例
+{
+  "group_id": "vg_image_10042_car_house",
+  "image_path": "/data/vg/images/10042.jpg",
+  "anchor": {
+    "name": "house",
+    "bbox": [200, 200, 400, 400]
+  },
+  "queries": [
+    {
+      "pair_type": "base",
+      "text": "Find the car left of the house.",
+      "target_bbox": [50, 350, 150, 420],
+      "valid_search_mask": [0, 0, 300, 600] 
+    },
+    {
+      "pair_type": "flip",
+      "text": "Find the car right of the house.",
+      "target_bbox": [450, 350, 550, 420],
+      "valid_search_mask": [300, 0, 600, 600]
+    },
+    {
+      "pair_type": "para",
+      "text": "Could you locate the car positioned on the left side of the house?", 
+      "target_bbox": [50, 350, 150, 420], 
+      "valid_search_mask": [0, 0, 300, 600]
+    }
+  ]
+}
 
 
 ### 1.2 神谕几何蒙版生成器 (Oracle Mask Generator)
