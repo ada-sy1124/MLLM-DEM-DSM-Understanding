@@ -19,6 +19,8 @@
 * $P$ (Predicate/谓词): 如 left_of, above, below
 
 json示例
+
+```text
 {
   "group_id": "vg_image_10042_car_house",
   "image_path": "/data/vg/images/10042.jpg",
@@ -47,7 +49,7 @@ json示例
     }
   ]
 }
-
+```
 
 ### 1.2 神谕几何蒙版生成器 (Oracle Mask Generator)
 
